@@ -10,7 +10,7 @@ import (
 
 type Range struct {
 	Start float64
-	End float64
+	End   float64
 }
 
 func InRange(ranges []*Range, n float64) bool {
@@ -23,17 +23,27 @@ func InRange(ranges []*Range, n float64) bool {
 	return false
 }
 
-func NewRange(start float64, end float64, masterRange *Range) (*Range, error) {
+func NewRange(start float64, end float64, masterRange *Range, isLooseRange bool) (*Range, error) {
 	if start <= 0.0 || end <= 0.0 {
 		return nil, errors.New("term cannot be negative or zero!")
 	}
 
 	if start < masterRange.Start {
-		return nil, errors.New("supplied start cannot be lower than the smallest chapter")
+		if isLooseRange {
+			// should inform user at this point, or with return value
+			start = masterRange.Start
+		} else {
+			return nil, errors.New("supplied start cannot be lower than the smallest chapter")
+		}
 	}
 
 	if end > masterRange.End {
-		return nil, errors.New("supplied end cannot be higher than the largest chapter")
+		if isLooseRange {
+			// should inform user at this point, or with return value
+			end = masterRange.End
+		} else {
+			return nil, errors.New("supplied end cannot be higher than the largest chapter")
+		}
 	}
 
 	if start > end {
@@ -42,15 +52,15 @@ func NewRange(start float64, end float64, masterRange *Range) (*Range, error) {
 		start = tmp
 	}
 
-	r := &Range {
+	r := &Range{
 		Start: start,
-		End: end,
+		End:   end,
 	}
 
 	return r, nil
 }
 
-func ParseRange(rangeString string, masterRange *Range) ([]*Range, error) {
+func ParseRange(rangeString string, masterRange *Range, isLooseRange bool) ([]*Range, error) {
 	numbers := strings.Split(rangeString, ",")
 	if len(numbers) == 0 {
 		return nil, errors.New("no range string specified")
@@ -67,7 +77,7 @@ func ParseRange(rangeString string, masterRange *Range) ([]*Range, error) {
 				return nil, err
 			}
 
-			r, err := NewRange(n, n, masterRange)
+			r, err := NewRange(n, n, masterRange, isLooseRange)
 			if err != nil {
 				return nil, err
 			}
@@ -84,7 +94,7 @@ func ParseRange(rangeString string, masterRange *Range) ([]*Range, error) {
 				return nil, err
 			}
 
-			r, err := NewRange(start, end, masterRange)
+			r, err := NewRange(start, end, masterRange, isLooseRange)
 			if err != nil {
 				return nil, err
 			}
@@ -146,11 +156,10 @@ func (c *ChapterPageData) GetChapterRange() (*Range, error) {
 		return nil, errors.New("invalid chapter range, start larger than end")
 	}
 
-	r := &Range {
+	r := &Range{
 		Start: math.Floor(start),
-		End: math.Ceil(end),
+		End:   math.Ceil(end),
 	}
 
 	return r, nil
 }
-

@@ -20,6 +20,8 @@ func main() {
 	flag.Int64Var(&delay, "d", 1000, "delay in milliseconds between requests")
 	var chapterRange string
 	flag.StringVar(&chapterRange, "r", "", "chapter range string, specify list to list chapters available or nothing to download everything. Refer to the README for more info.")
+	var isLooseRange bool
+	flag.BoolVar(&isLooseRange, "lr", false, "chapter range can be applied loosly and be modified when chapters not available")
 	flag.Parse()
 
 	if url == "" {
@@ -59,7 +61,7 @@ func main() {
 	if chapterRange == "" {
 		ranges = append(ranges, masterRange)
 	} else {
-		r, err := ParseRange(chapterRange, masterRange)
+		r, err := ParseRange(chapterRange, masterRange, isLooseRange)
 		if err != nil {
 			log.Fatal(err)
 		}
