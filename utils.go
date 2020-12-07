@@ -4,6 +4,7 @@ import (
 	"math"
 	"os"
 	"regexp"
+	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -38,6 +39,11 @@ func DirExists(dir string) error {
 
 func GetDirName(title string) string {
 	reg := regexp.MustCompile("^[ \t]+|[ \t]+$|[^a-zA-Z0-9.()[\\]\\-_!' ]+")
+
+	// cannot end a folder name with a dot "."
+	if strings.HasSuffix(title, ".") {
+		title = title + "_"
+	}
 
 	return reg.ReplaceAllString(title, "-")
 }
